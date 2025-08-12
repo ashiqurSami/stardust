@@ -87,7 +87,9 @@ class PurchaseOrder(models.Model):
             else:
                 vals['approval_state'] = 'coo_confirmed'
                 body = _("Confirmed by COO. MD approval not required.")
-            order.write(vals)
+
+            # Bypass restriction
+            order.with_context(allow_bypass_write=True).sudo().write(vals)
             order.message_post(body=body)
         return True
 
@@ -103,12 +105,15 @@ class PurchaseOrder(models.Model):
             if order.approval_state != 'coo_confirmed':
                 raise UserError(_("COO approval is only allowed after COO has confirmed the RFQ."))
 
-            order.write({
+            # bypass restriction for all writes in this flow
+            order_ctx = order.with_context(allow_bypass_write=True).sudo()
+
+            order_ctx.write({
                 'approval_state': 'coo_approved',
                 'approved_by': self.env.user.id,
             })
             order.message_post(body=_("COO approved. Finalizing Purchase Order."))
-            super(PurchaseOrder, order).button_confirm()
+            super(PurchaseOrder, order_ctx).button_confirm()
             self.notify_vendor(order)  #send email to vendor
         return True
 
@@ -124,12 +129,15 @@ class PurchaseOrder(models.Model):
             if order.approval_state != 'md_waiting':
                 raise UserError(_("This PO is not waiting for MD approval."))
 
-            order.write({
+            # bypass restriction for all writes in this flow
+            order_ctx = order.with_context(allow_bypass_write=True).sudo()
+
+            order_ctx.write({
                 'approval_state': 'md_approved',
                 'approved_by': self.env.user.id,
             })
             order.message_post(body=_("MD approved. Finalizing Purchase Order."))
-            super(PurchaseOrder, order).button_confirm()
+            super(PurchaseOrder, order_ctx).button_confirm()
             self.notify_vendor(order) #send email to vendor
         return True
 
@@ -154,6 +162,12 @@ class PurchaseOrder(models.Model):
         if not self.env.user.has_group('stardust.group_stardust_procurement_team'):
             raise UserError("You do not have permission to create Purchase Orders.")
         return super(PurchaseOrder, self).create(vals_list)
+
+    def write(self, vals_list):
+        if not self.env.context.get('allow_bypass_write'):
+            if not self.env.user.has_group('stardust.group_stardust_procurement_team'):
+                raise UserError("You do not have permission to Update Purchase Orders.")
+        return super(PurchaseOrder, self).write(vals_list)
 
     def amount_total_to_words(self):
         # Get the company's currency code (e.g., USD, EUR, BDT)
