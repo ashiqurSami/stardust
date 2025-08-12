@@ -257,7 +257,6 @@
                 </div>
 
                 <!-- Signature Section -->
-                <!-- Footer with side-by-side columns (no table, no flex) -->
                 <div class="footer"
                      style="margin-top:-10px; font-size:14px; font-family:Arial, sans-serif; line-height:1.2;">
                     <!-- Left Column -->
