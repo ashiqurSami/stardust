@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stardust_procurement_team,access.stardust.procurement.team,purchase.model_purchase_order,group_stardust_procurement_team,1,1,1,1
+access_stardust_coo,access.stardust.coo,purchase.model_purchase_order,group_stardust_coo,1,0,0,0
+access_stardust_md,access.stardust.md,purchase.model_purchase_order,group_stardust_md,1,0,0,0

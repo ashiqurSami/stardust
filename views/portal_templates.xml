@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <template id="portal_supplies" inherit_id="portal.portal_my_home">
+        <xpath expr="//div[@id='portal_vendor_category']" position="inside">
+            <t t-if="request.env.user.has_group('base.group_portal')">
+                <t t-call="portal.portal_docs_entry">
+                    <t t-set="icon" t-value="'/web/static/img/rfq.svg'"/>
+                    <t t-set="title" t-value="'Your Purchase Orders'"/>
+                    <t t-set="description" t-value="'View POs'"/>
+                    <t t-set="url" t-value="'/my/purchase-orders'"/>
+                    <t t-set="text">View Purchase Orders assigned to you</t>
+                    <t t-set="config_card" t-value="True"/>
+                </t>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="portal_supplies_breadcrumb" inherit_id="portal.portal_breadcrumbs">
+        <xpath expr="//ol[hasclass('breadcrumb')]" position="inside">
+            <li t-if="page_name == 'purchase_list'" class="breadcrumb-item">Purchase Orders</li>
+            <li t-if="page_name == 'purchase_detail'" class="breadcrumb-item">
+                <a t-att-href="'/my/purchase-orders'">Purchase Orders</a>
+            </li>
+            <li t-if="page_name == 'purchase_detail'" class="breadcrumb-item">
+                <t t-esc="purchase.name"/>
+            </li>
+        </xpath>
+    </template>
+
+    <template id="portal_purchase_order_tree_view">
+        <t t-call="portal.portal_layout">
+            <div class="container">
+                <t t-call="portal.portal_searchbar">
+                    <t t-set="title">Purchase Orders</t>
+                </t>
+                <div class="row">
+                    <div class="col-md-12">
+                        <t t-if="not purchase_orders">
+                            <div class="my-5 py-5 text-center text-muted">
+                                <i class="fa fa-shopping-cart fa-3x mb-3"/>
+                                <h5>No Purchase Orders Available</h5>
+                            </div>
+                        </t>
+                        <t t-if="purchase_orders" t-call="portal.portal_table">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Approve Date</th>
+                                    <th>Vendor</th>
+                                    <th>Total Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="purchase_orders" t-as="purchase">
+                                    <tr>
+                                        <td>
+                                            <a t-attf-href="/my/purchase-orders/{{purchase.id}}">
+                                                <t t-esc="purchase.name"/>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <t t-esc="purchase.date_approve"/>
+                                        </td>
+                                        <td>
+                                            <t t-esc="purchase.partner_id.name"/>
+                                        </td>
+                                        <td>
+                                            <t t-esc="purchase.amount_total"/>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">
+                                                <t t-esc="dict(purchase._fields['approval_state'].selection).get(purchase.approval_state)"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_purchase_order_detail">
+        <t t-call="portal.portal_layout">
+            <div class="container mt-5">
+                <div class="card shadow-lg border-0 rounded-3" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0">Purchase Order Details</h2>
+                        <a t-attf-href="/my/purchase-orders" class="btn btn-light btn-sm">Back to List</a>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-primary">Order Information</h5>
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">Reference</span>
+                                                <strong><t t-esc="purchase.name"/></strong>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">Order Date</span>
+                                                <strong><t t-esc="purchase.date_order"/></strong>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">Vendor</span>
+                                                <strong><t t-esc="purchase.partner_id.name"/></strong>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">Total Amount</span>
+                                                <strong><t t-esc="purchase.amount_total"/></strong>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">Created By</span>
+                                                <div class="text-end">
+                                                    <strong><t t-esc="purchase.create_uid.name"/> (Contact Person)</strong><br/>
+                                                    <strong><t t-esc="purchase.create_uid.email or ''"/></strong>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card h-100 border-0 bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-primary">Approval Status</h5>
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">Status</span>
+                                                <t>
+                                                    <span class="badge bg-success rounded-pill px-4 py-2 fs-6">
+                                                        <t t-esc="dict(purchase._fields['approval_state'].selection).get(purchase.approval_state)"/>
+                                                    </span>
+                                                </t>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">Approved By</span>
+                                                <strong><t t-esc="purchase.approved_by.name if purchase.approved_by else 'N/A'"/></strong>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">Confirmed By</span>
+                                                <strong><t t-esc="purchase.confirmed_by.name if purchase.confirmed_by else 'N/A'"/></strong>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">Approval Date</span>
+                                                <strong><t t-esc="purchase.date_approve if purchase.date_approve else 'N/A'"/></strong>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">Confirmation Date</span>
+                                                <strong><t t-esc="purchase.confirmed_date if purchase.confirmed_date else 'N/A'"/></strong>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <h5 class="text-primary mb-3">Products</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="text-nowrap">Product</th>
+                                                <th>Image</th>
+                                                <th>Description</th>
+                                                <th class="text-end">Qty</th>
+                                                <th class="text-end">Unit Price</th>
+                                                <th class="text-end">Taxes</th>
+                                                <th class="text-end">Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="purchase.order_line" t-as="l" t-key="l.id">
+                                                <td class="text-nowrap"><t t-esc="l.product_id.display_name or '-'"/></td>
+                                                <td>
+                                                    <img t-if="l.product_id.image_1920"
+                                                         t-att-src="image_data_uri(l.product_id.image_1920)"
+                                                         class="img-thumbnail" alt="Product image"
+                                                         style="max-width: 100px;"/>
+                                                    <div t-else="" class="text-muted">No image</div>
+                                                </td>
+                                                <td class="text-muted"><t t-raw="l.name or ''"/></td>
+                                                <td class="text-end"><t t-esc="l.product_qty"/></td>
+                                                <td class="text-end">
+                                                    <t t-esc="l.price_unit"/>
+                                                </td>
+                                                <td class="text-end"><t t-esc="', '.join(l.taxes_id.mapped('name')) or '—'"/></td>
+                                                <td class="text-end">
+                                                    <t t-esc="l.price_subtotal"/>
+                                                </td>
+                                            </tr>
+                                            <tr t-if="not purchase.order_line">
+                                                <td colspan="6" class="text-center text-muted py-4">No products.</td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot class="table-light">
+                                            <tr>
+                                                <th colspan="6" class="text-end">Untaxed</th>
+                                                <th class="text-end">
+                                                    <t t-esc="purchase.amount_untaxed"/>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="6" class="text-end">Taxes</th>
+                                                <th class="text-end">
+                                                    <t t-esc="purchase.amount_tax"/>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="6" class="text-end">Total</th>
+                                                <th class="text-end fw-bold">
+                                                    <t t-esc="purchase.amount_total"/>
+                                                </th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Products -->
+                    <div class="card-footer text-muted text-center py-3">
+                        <small>Powered by YourCompany | © 2025</small>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

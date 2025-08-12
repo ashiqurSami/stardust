@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="email_template_notify_vendor" model="mail.template">
+        <field name="name">RFP Submission Approver Notification</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="body_html" type="html">
+            <h3>Hello,</h3>
+            <p>
+                A new PO is created and assigned to you!
+            </p>
+            <p>
+                PO Number: <t t-esc="ctx.get('po_name') or not_available"/><br/>
+            </p>
+            <p>
+                Approved By: <t t-esc="ctx.get('approved_by') or not_available"/><br/>
+            </p>
+            <p>
+                Approved on: <t t-esc="ctx.get('approval_date') or not_available"/><br/>
+            </p>
+            <p>
+                Feel free to reach out to the procurement team if you have any questions or need further information. <br/>
+                Contact Person: <t t-esc="ctx.get('contact_person') or not_available"/> <br/>
+                Contact Person Email: <t t-esc="ctx.get('contact_person_email') or not_available"/>
+            </p>
+            <p>--------</p>
+            <p>Best Regards</p>
+            <p>
+                <t t-esc="ctx.get('contact_person') or not_available"/> <br/>
+                Procurement Team
+            </p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="purchase_order_form_inherit" model="ir.ui.view">
+            <field name="name">purchase.order.form.inherit.stardust</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//button[@id='bid_confirm']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//button[@id='draft_confirm']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <!-- Always hide the "Send by Email" button (context send_rfq=True) -->
+                <xpath expr="//button[@name='action_rfq_send' and @context=&quot;{'send_rfq':True}&quot;]" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <!-- Restrict "Send PO by Email" button (context send_rfq=False) to procurement team -->
+                <xpath expr="//button[@name='action_rfq_send' and @context=&quot;{'send_rfq':False}&quot;]" position="attributes">
+                    <attribute name="groups">stardust.group_stardust_procurement_team</attribute>
+                </xpath>
+
+                <xpath expr="//button[@name='button_cancel']" position="attributes">
+                    <attribute name="groups">stardust.group_stardust_procurement_team</attribute>
+                </xpath>
+
+                <xpath expr="//header" position="inside">
+                    <field name="requires_md_approval" invisible="1"/>
+                    <button name="action_coo_confirm"
+                            type="object"
+                            string="Confirm"
+                            class="btn-primary"
+                            groups="stardust.group_stardust_coo"
+                            invisible="state not in ('draft', 'sent') or approval_state != 'draft'"
+                    />
+                    <button name="action_coo_approve"
+                            type="object"
+                            string="Approve"
+                            class="btn-success"
+                            groups="stardust.group_stardust_coo"
+                            invisible="state not in ('draft', 'sent') or approval_state != 'coo_confirmed'
+                                       or requires_md_approval"
+                    />
+                    <button name="action_md_approve"
+                            type="object"
+                            string="Approve"
+                            class="btn-success"
+                            groups="stardust.group_stardust_md"
+                            invisible="state not in ('draft', 'sent') or approval_state != 'md_waiting'"
+                    />
+                </xpath>
+
+                <xpath expr="//field[@name='date_approve']" position="attributes">
+                    <attribute name="string">Approval Date</attribute>
+                </xpath>
+
+                <xpath expr="//sheet//field[@name='date_order']" position="before">
+                    <field name="approval_state"
+                           widget="badge"
+                           decoration-info="approval_state == 'draft'"
+                           decoration-warning="approval_state == 'coo_confirmed'"
+                           decoration-success="approval_state in ('coo_approved', 'md_approved')"
+                           decoration-danger="approval_state == 'md_waiting'"
+                           readonly="1"/>
+                </xpath>
+
+                <xpath expr="//sheet//field[@name='partner_ref']/ancestor::group[1]" position="inside">
+                    <field name="confirmed_by" readonly="1"/>
+                    <field name="approved_by" readonly="1"/>
+                    <field name="create_uid" string="Created By" readonly="1"/>
+                </xpath>
+
+                <xpath expr="//sheet//field[@name='date_planned']/ancestor::group[1]" position="inside">
+                    <field name="confirmed_date" readonly="1"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="purchase_order_list_inherit" model="ir.ui.view">
+            <field name="name">purchase.order.list.inherit.stardust</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_kpis_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//list" position="inside">
+                    <field name="approval_state"
+                           string="Approval State"
+                           widget="badge"
+                           readonly="1"
+                           optional="show"
+                           decoration-info="approval_state == 'draft'"
+                           decoration-warning="approval_state == 'coo_confirmed'"
+                           decoration-danger="approval_state == 'md_waiting'"
+                           decoration-success="approval_state in ('coo_approved','md_approved')"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>
